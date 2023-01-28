@@ -1,0 +1,136 @@
+﻿; keylogger.inf
+
+
+[Version]
+Signature="$Windows NT$"
+Provider=%ProviderName%
+ClassGUID={4D36E96B-E325-11CE-BFC1-08002BE10318}
+Class=Keyboard
+DriverVer=07/20/1999, 1.0.0.0
+PnpLockdown= 1
+; Uncomment the following line when you have a valid catalog file.
+;         If you use bogus catalog file installation will fail.
+CatalogFile=KmdfSamples.cat
+
+[DestinationDirs]
+DefaultDestDir   = 12
+kbfiltr_CoInstaller_CopyFiles = 11
+
+;
+; Driver information
+;
+
+[Manufacturer]
+%MfgName% = Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%keylogger.DeviceDesc% = keylogger, *PNP0303
+
+;
+; General installation section
+;
+
+[keylogger.NT]
+; perform port related actions from keyboard.inf
+Include=keyboard.inf
+Needs=STANDARD_Inst
+
+; Copy the driver over
+CopyFiles=keylogger.CopyFiles
+
+
+;
+; File sections
+;
+
+[keylogger.CopyFiles]
+keylogger.sys
+
+
+;
+; Service Installation
+;
+
+[keylogger.NT.Services]
+AddService = keylogger,  , keylogger_Service_Inst
+; Install the port driver and mouclass from keyboard.inf
+Include=keyboard.inf
+Needs=STANDARD_Inst.Services
+
+[keylogger_Service_Inst]
+DisplayName    = %keylogger.SvcDesc%
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 3                  ; SERVICE_DEMAND_START
+ErrorControl   = 0                  ; SERVICE_ERROR_IGNORE
+ServiceBinary  = %12%\keylogger.sys
+
+[keylogger.NT.HW]
+; Add the device upper filter
+AddReg = keylogger.HW.AddReg
+
+; run the directives need by the port driver
+Include=keyboard.inf
+Needs=STANDARD_Inst.HW
+
+[keylogger.HW.AddReg]
+HKR,,"UpperFilters",0x00010000,"keylogger"
+
+
+;
+; Source file information
+;
+
+
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
+[SourceDisksFiles]
+keylogger.sys = 1
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll = 1
+
+;
+;--- keylogger Coinstaller installation ------
+;
+
+[keylogger.NT.CoInstallers]
+AddReg=keylogger_CoInstaller_AddReg
+CopyFiles=keylogger_CoInstaller_CopyFiles
+
+[keylogger_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[keylogger_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[keylogger.NT.Wdf]
+KmdfService = keylogger, keylogger_wdfsect
+
+[keylogger_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+
+[Strings]
+
+;
+; Non-Localizable Strings
+;
+
+REG_SZ         = 0x00000000
+REG_MULTI_SZ   = 0x00010000
+REG_EXPAND_SZ  = 0x00020000
+REG_BINARY     = 0x00000001
+REG_DWORD      = 0x00010001
+
+;
+; Localizable Strings
+;
+
+ProviderName = "TODO-Set-Provider"
+MfgName      = "TODO-Set-Manufacturer"
+
+keylogger.DeviceDesc = "Key Logger"
+
+; Make sure the service description is unique to avoid collision with another INF.
+keylogger.SvcDesc = "Key Logger Driver"
+
+DiskId1 = "Key Logger Install Disk"
