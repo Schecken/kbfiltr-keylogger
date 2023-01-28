@@ -31,7 +31,7 @@ if (scancode >= 0 && scancode < SZ_KEYTABLE)
 ```
 
 ### Viewing Log
-The log is locked by the DACL on creation but can be changed to view during use with `icacls`
+The log can be locked by the DACL on creation (not default) but can be changed to view during use with `icacls`
 ```bash
 icacls `"C:\keylog.txt`" /grant:r `"Administrators`":f
 ```
