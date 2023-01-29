@@ -1316,9 +1316,6 @@ WriteWorkItem(
 				//clear secretBuffer to start checking again
 				memset(secretBuffer, 0, sizeof(secretBuffer));
 			}
-			else {
-				WriteToLogFile = broken;
-			}
 		}
 	}
 
